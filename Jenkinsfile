@@ -108,6 +108,25 @@ pipeline{
                    dockerImageCleanup("${params.ImageName}","${params.ImageTag}","${params.DockerHubUser}")
                }
             }
-        }      
+        } 
+        stage('Trigger Harness CD') {
+            when { expression { params.action == 'create' } }
+            steps {
+                script {
+                    echo "Triggering Harness CD pipeline..."
+                    def webhookUrl = 'https://app.harness.io/gateway/ng/api/webhook?accountIdentifier=VGk2pdiiROe3ivGIm6Yhjg&webhookIdentifier=Jenkins'
+                    def imageTag = "${params.ImageTag}"
+
+                    sh """
+                    curl -X POST \
+                      -H 'Content-Type: application/json' \
+                      -d '{"artifactTag": "${imageTag}"}' \
+                      '${webhookUrl}'
+                    """
+                }
+            }
+        }
+    }
+}
     }
 }
